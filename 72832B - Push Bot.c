@@ -40,13 +40,8 @@ void pre_auton()
 	// manage all user created tasks if set to false.
 	bStopTasksBetweenModes = true;
 
-	// Set bDisplayCompetitionStatusOnLcd to false if you don't want the LCD
-	// used by the competition include file, for example, you might want
-	// to display your team name on the LCD in this function.
-	// bDisplayCompetitionStatusOnLcd = false;
-
-	// All activities that occur before the competition starts
-	// Example: clearing encoders, setting servo positions, ...
+	SensorValue[rightDrive] = 0;
+	SensorValue[leftDrive] = 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -59,14 +54,46 @@ void pre_auton()
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
+// Declaring functions for auton
+void blueFlagSide()
+{
+
+}
+
+void redFlagSide()
+{
+
+}
+
+void blueFarSide()
+{
+
+}
+
+void redFarSide()
+{
+
+}
+
 task autonomous()
 {
-	// ..........................................................................
-	// Insert user code here.
-	// ..........................................................................
-
-	// Remove this function call once you have "real" code.
-	AutonomousCodePlaceholderForTesting();
+	// Chooses which auton to run based on where jumper clips are placed
+	if (vexRT[dgtl5] != vexRT[dgtl6] == 1)
+	{
+		blueFlagSide();
+	}
+	else if (vexRT[dgtl6] != vexRT[dgtl5] == 1)
+	{
+		redFlagSide();
+	}
+	else if (vexRT[dgtl6] && vexRT[dgtl5] == 1)
+	{
+		blueFarSide();
+	}
+	else if (vexRT[dgtl6] && vexRT[dgtl5] == 0)
+	{
+		redFarSide();
+	}
 }
 
 /*---------------------------------------------------------------------------*/
@@ -81,7 +108,7 @@ task autonomous()
 
 task usercontrol()
 {
-	// Declaring Varibles
+	// Declaring Variables
 	int KpR = 0;
 	int errorR = 0;
 	int targetSpeedR = 0;
@@ -90,6 +117,7 @@ task usercontrol()
 	int errorL = 0;
 	int targetSpeedL = 0;
 	int drivePowerL = 0;
+	bool brakes = false;
 
 	while (true)
 	{
@@ -103,41 +131,49 @@ task usercontrol()
 
 		// PID Parking Brake
 
-		// Right side
-		errorR = targetSpeedR - nMotorEncoder[rightDrive];  // Currently just P, we can add on in the future
-		drivePowerR += (int)(KpR*errorR);
-		//
-		// Limit the drive power range to 0
-		//
-		if (drivePowerR > 0)
+		if (vexRT[Btn8D] == 1)
 		{
-			drivePowerR = 0;
+			brakes = !brakes;
 		}
-		else if (drivePowerR < 0)
-		{
-			drivePowerR = 0;
-		}
-		motor[rightDrive1] = drivePowerR;
-		motor[rightDrive2] = drivePowerR;
-		motor[rightDrive3] = drivePowerR;
 
-		// Left side
-		// PID Parking Brake right side
-		errorL = targetSpeedL - nMotorEncoder[leftDrive];   // Currently just P, we can add on in the future
-		drivePowerL += (int)(KpL*errorL);
-		//
-		// Limit the drive power range to 0
-		//
-		if (drivePowerL > 0)
+		while (brakes == true)
 		{
-			drivePowerL = 0;
+			// Right side
+			errorR = targetSpeedR - SensorValue[rightDrive];  // Currently just P, we can add on in the future
+			drivePowerR += (int)(KpR*errorR);
+			//
+			// Limit the drive power range to 0
+			//
+			if (drivePowerR > 0)
+			{
+				drivePowerR = 0;
+			}
+			else if (drivePowerR < 0)
+			{
+				drivePowerR = 0;
+			}
+			motor[rightDrive1] = drivePowerR;
+			motor[rightDrive2] = drivePowerR;
+			motor[rightDrive3] = drivePowerR;
+
+			// Left side
+			// PID Parking Brake left side
+			errorL = targetSpeedL - SensorValue[leftDrive];   // Currently just P, we can add on in the future
+			drivePowerL += (int)(KpL*errorL);
+			//
+			// Limit the drive power range to 0
+			//
+			if (drivePowerL > 0)
+			{
+				drivePowerL = 0;
+			}
+			else if (drivePowerL < 0)
+			{
+				drivePowerL = 0;
+			}
+			motor[leftDrive1] = drivePowerL;
+			motor[leftDrive2] = drivePowerL;
+			motor[leftDrive3] = drivePowerL;
 		}
-		else if (drivePowerL < 0)
-		{
-			drivePowerL = 0;
-		}
-		motor[rightDrive1] = drivePowerL;
-		motor[rightDrive2] = drivePowerL;
-		motor[rightDrive3] = drivePowerL;
 	}
 }
